@@ -1,0 +1,163 @@
+BT Code:
+Assignment 3 Code:
+ Write a smart contract on a test network, for Bank account of a customer for following
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Bank {
+    mapping(address => uint) private balances;
+
+    // Constructor can accept Ether during deployment (optional)
+    constructor() payable {
+        if (msg.value > 0) {
+            balances[msg.sender] = msg.value;
+        }
+    }
+
+    // Deposit function (must be payable)
+    function deposit() public payable {
+        require(msg.value > 1, "Deposit amount must be greater than zero");
+        balances[msg.sender] += msg.value;
+    }
+
+    // Withdraw function
+    function withdraw(uint _amount) public {
+        require(_amount > 0, "Withdraw amount must be greater than zero");
+        require(balances[msg.sender] >= _amount, "Insufficient balance");
+
+        balances[msg.sender] -= _amount;
+        payable(msg.sender).transfer(_amount);
+    }
+
+    // Show balance of the sender
+    function getBalance() public view returns (uint) {
+        return balances[msg.sender];
+    }
+}
+
+
+**********************************************************************
+
+3 — Theory (short, exam style)
+
+Smart contract: a program that lives on Ethereum Virtual Machine (EVM) and runs deterministically.
+
+Payable functions: functions marked payable can receive Ether (e.g., deposit() and constructor).
+
+Mapping: mapping(address => uint) is a hash table that maps addresses to uint balances.
+
+State variables: stored on-chain and persist between transactions.
+
+Events: used for logging (off-chain watchers like UIs or tests read events).
+
+Checks-Effects-Interactions pattern: security pattern — first check conditions, then update state (effects), then interact with external accounts (transfer Ether) to reduce reentrancy risk.
+
+call vs transfer: call is the recommended modern method to send Ether because transfer can fail due to gas limits; always check the returned boolean.
+
+4 — Algorithm (step-by-step, plain)
+
+deposit()
+
+Caller sends a transaction with Ether and calls deposit() (function is payable).
+
+Contract checks msg.value > 0.
+
+Add msg.value to balances[msg.sender].
+
+Emit Deposited event.
+
+withdraw(_amount)
+
+Caller requests withdrawal amount.
+
+Check _amount > 0 and balances[msg.sender] >= _amount.
+
+Subtract _amount from balances[msg.sender] (effects).
+
+Send Ether to caller using call and require success (interaction).
+
+Emit Withdrawn event.
+
+getBalance()
+
+Read-only view that returns balances[msg.sender].
+
+5 — Key concepts explained (exam-friendly, bullet points)
+
+msg.sender: the address that initiated the call/transaction.
+
+msg.value: amount of Wei (Ether) sent with the transaction.
+
+Wei vs Ether: Wei is the smallest unit. 1 Ether = 10^18 Wei. In code we use uint representing Wei.
+
+Visibility: public, private, view, payable. private balances cannot be read from other contracts but can be read via helper functions.
+
+Gas & Transactions: state changes cost gas; deposit() and withdraw() are transactions (cost gas). getBalance() is view and free when called off-chain.
+
+Mapping: efficient key-value store. Default value is zero if key not set.
+
+Events: emit logs for frontends/etherscan.
+
+Reentrancy risk: if external call happens before state update, attacker can reenter — avoided by checks-effects-interactions.
+
+Constructor payable: contract can receive funds at deployment time.
+
+6 — Common mistakes & improvements (short)
+
+require(msg.value > 1) — wrong threshold; should be > 0.
+
+Sending Ether with transfer can break in future; prefer call and check return.
+
+No admin / owner — anyone can use deposit/withdraw for their own balance (fine for per-address bank).
+
+No maximum balance checks or interest logic — keep simple for LP3.
+
+Add events — helps testing and examiner demos.
+
+7 — Conclusion (1 paragraph)
+
+This contract demonstrates basic on-chain state management and value transfer: deposits increase the caller’s stored balance, withdrawals decrease it and pay out Ether, and balances are retrievable. For LP3, focus on understanding payable functions, mapping, msg.sender/msg.value, gas/transaction basics, and the security pattern (checks-effects-interactions). With the corrected code and events, this is ready to deploy on a testnet (like Goerli) for demonstration.
+
+8 — Short demo steps to show in practical (oral checklist)
+
+Compile in Remix with Solidity ^0.8.0.
+
+Deploy on a testnet (select Injected Web3 / MetaMask connected to Goerli). Optionally send 0.01 ETH in constructor.
+
+Call deposit() sending 0.001 ETH; show Deposited event and getBalance().
+
+Call withdraw(1000000000000000) (that’s 0.001 ETH in Wei) and show balance change and Withdrawn event.
+
+Show transaction details and events on Etherscan (if deployed to public testnet).
+
+9 — Ten likely viva questions + concise answers
+
+Q: What does payable mean?
+A: payable marks a function (or constructor) to accept Ether; without it, the contract rejects any Ether sent.
+
+Q: Why use a mapping(address => uint)?
+A: To associate each Ethereum address with its balance; mapping is an efficient on-chain key-value store.
+
+Q: What are msg.sender and msg.value?
+A: msg.sender is the caller’s address; msg.value is the amount of Wei sent with the transaction.
+
+Q: Why is getBalance() declared view?
+A: Because it reads state without modifying it; view functions don’t cost gas when called off-chain.
+
+Q: Explain checks-effects-interactions pattern.
+A: First check conditions; then update contract state (effects); finally interact with external addresses (send Ether). This reduces reentrancy risk.
+
+Q: What is reentrancy and how could it affect this contract?
+A: Reentrancy is when an external call calls back into the contract before state is updated, potentially draining funds. We avoid it by updating balances before sending Ether.
+
+Q: Should we use transfer or call? Why?
+A: Prefer call because transfer forwards a fixed small gas stipend which can break with gas changes; call forwards all gas and returns a success flag — check it.
+
+Q: How are balances stored and persisted?
+A: In the contract’s storage via the balances mapping; storage is persistent on-chain across transactions.
+
+Q: Can someone withdraw another person’s balance?
+A: No — withdrawals use msg.sender and check balances[msg.sender], so only the account owner can withdraw their own balance.
+
+Q: How would you add an admin or owner to this contract?
+A: Add an address public owner set in constructor (owner = msg.sender) and protect admin-only functions with a require(msg.sender == owner) check.

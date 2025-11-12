@@ -1,0 +1,127 @@
+
+Write a program in solidity to create Student data. Use the following constructs:
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract StudentRecord {
+
+    // Structure to hold student data
+    struct Student {
+        uint id;
+        string name;
+        uint age;
+        string course;
+    }
+
+    // Array to store students
+    Student[] public students;
+
+    // Event to log student addition
+    event StudentAdded(uint id, string name);
+
+    // Function to add a student
+    function addStudent(uint _id, string memory _name, uint _age, string memory _course) public {
+        students.push(Student(_id, _name, _age, _course));
+        emit StudentAdded(_id, _name);
+    }
+
+    // Function to get student by index
+    function getStudent(uint index) public view returns (uint, string memory, uint, string memory) {
+        require(index < students.length, "Invalid index");
+        Student memory s = students[index];
+        return (s.id, s.name, s.age, s.course);
+    }
+
+    // Function to get total number of students
+    function getStudentCount() public view returns (uint) {
+        return students.length;
+    }
+
+    // Fallback function (triggered when contract receives Ether or invalid call)
+    fallback() external payable {
+        // Simply accept Ether and log event
+        emit Received(msg.sender, msg.value, "Fallback triggered");
+    }
+
+    // Receive function (for plain Ether transfers)
+    receive() external payable {
+        emit Received(msg.sender, msg.value, "Receive triggered");
+    }
+
+    // Event for fallback/receive
+    event Received(address sender, uint amount, string message);
+}
+
+
+*************************************************
+
+🧾 1. Short Summary
+
+This Solidity program stores student data (ID, Name, Age, Course) using a struct and an array.
+It allows adding new students, viewing individual student details, and checking total student count.
+It also includes fallback and receive functions to handle Ether transfers.
+
+📘 2. Theory
+
+Smart Contract: A small blockchain program that executes on the Ethereum network.
+
+Struct: A user-defined data type used to group related information (like student details).
+
+Array: A dynamic list that stores multiple student records.
+
+Events: Used to log actions (e.g., when a student is added).
+
+Fallback & Receive Functions: Handle Ether sent to the contract — used for accepting payments or catching invalid function calls.
+
+⚙️ 3. Algorithm
+
+Step 1: Define a Student struct with fields: id, name, age, and course.
+Step 2: Declare an array students to store multiple student records.
+Step 3: Write a function addStudent() to:
+
+Take input parameters.
+
+Create a new Student struct.
+
+Push it into the array.
+
+Emit an event StudentAdded.
+Step 4: Write getStudent() to return a student’s details by index.
+Step 5: Write getStudentCount() to return total number of students.
+Step 6: Add fallback and receive functions to handle Ether transfers and emit Received event.
+
+🧩 4. Key Concepts Explained
+Concept	Explanation
+Struct	Combines multiple data types under one name (like a class in OOP).
+Array	Stores multiple student records dynamically.
+Event	Logs blockchain actions for monitoring (e.g., when a student is added).
+Memory Keyword	Used for temporary data (like strings in functions).
+Mapping vs Array	Here we use an array since we want to list all students sequentially.
+Fallback Function	Executes when a non-existent function is called or plain data is sent.
+Receive Function	Executes when Ether is sent without data.
+Public Keyword	Makes data/functions readable externally.
+View Function	Reads data from blockchain (no gas fee off-chain)
+
+🎓 7. Conclusion
+
+This contract demonstrates how Solidity handles structured data using structs and arrays.
+It also shows event logging, fallback/receive functions, and data retrieval techniques.
+Such programs are foundational for decentralized apps that store and manage records securely on-chain.
+
+🎤 8. Top 10 Viva Questions & Answers
+No.	Question	Answer
+1	What is the purpose of a struct?	To group related data of different types under a single name.
+2	Why do we use memory for strings?	Because strings are reference types and need temporary memory allocation inside functions.
+3	What is the difference between view and pure?	view reads state variables; pure neither reads nor modifies them.
+4	What is an event in Solidity?	An event logs data to the blockchain, which can be read off-chain.
+5	How is student data stored?	In a dynamic array of Student structs.
+6	What does fallback() do?	It runs when a contract receives Ether or invalid function calls.
+7	What is the receive() function used for?	Specifically handles direct Ether transfers without data.
+8	Why use require() in getStudent()?	To prevent invalid index access and ensure contract safety.
+9	Can anyone add a student?	Yes, as written — the function is public. Access control can be added later.
+10	What happens if Ether is sent to the contract?	The receive() or fallback() function is triggered and emits a Received event.
+
+🏁 10. Quick One-Line Recap
+
+👉 “This Solidity program creates a digital student record system using structs and arrays, allowing addition, retrieval, and count of students, and safely handles Ether transfers with fallback and receive functions.”
